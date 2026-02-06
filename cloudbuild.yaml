@@ -44,5 +44,8 @@ substitutions:
   _VITE_FIREBASE_PROJECT_ID: ''
   _VITE_FIREBASE_APP_ID: ''
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 images:
   - 'gcr.io/$PROJECT_ID/south-hampshire-college'
