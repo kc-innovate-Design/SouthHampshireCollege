@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { signOut } from "firebase/auth";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { signOut, User } from "firebase/auth";
 import { auth } from "./firebase";
 import RequireAuth from "./components/RequireAuth";
 import { SECTIONS, FRAMEWORK_CONFIGS } from "../constants";
 import { ProjectState, SectionKey, Idea, FrameworkItem } from "../types";
+import { loadProjects, saveProject, deleteProject as deleteProjectFromFirestore, migrateFromLocalStorage } from "./services/storageService";
 // Note: Gemini AI is now accessed via secure backend API at /api/v1/generate-ideas
-
-const STORAGE_KEY = "strategysuite_projects_v1";
 
 /**
  * StrategySuiteApp
@@ -22,26 +21,67 @@ export default function StrategySuiteApp() {
  * AppShell
  * Persistent layout with sidebar and main content.
  */
-function AppShell() {
-    const [projects, setProjects] = useState<ProjectState[]>(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    });
+function AppShell({ user }: { user?: User }) {
+    const [projects, setProjects] = useState<ProjectState[]>([]);
     const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<SectionKey>(SectionKey.PROJECT_LIST);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Load projects from Firestore on mount
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    }, [projects]);
+        if (!user?.uid) {
+            setIsLoading(false);
+            return;
+        }
+
+        async function initializeProjects() {
+            try {
+                // First, try to migrate any existing localStorage data
+                const migratedProjects = await migrateFromLocalStorage(user!.uid);
+
+                if (migratedProjects.length > 0) {
+                    setProjects(migratedProjects);
+                } else {
+                    // Load projects from Firestore
+                    const firestoreProjects = await loadProjects(user!.uid);
+                    setProjects(firestoreProjects);
+                }
+            } catch (error) {
+                console.error('Failed to initialize projects:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        initializeProjects();
+    }, [user?.uid]);
+
+    // Debounced save to Firestore when a project changes
+    const saveProjectDebounced = useCallback((project: ProjectState) => {
+        if (!user?.uid) return;
+
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+            saveProject(user.uid, project).catch(err => {
+                console.error('Failed to save project:', err);
+            });
+        }, 1000); // Debounce for 1 second
+    }, [user?.uid]);
 
     const updateActiveProject = (updater: (prev: ProjectState) => ProjectState) => {
         if (!activeProjectId) return;
         setProjects(prev => prev.map(p => {
             if (p.id === activeProjectId) {
-                return { ...updater(p), lastUpdated: Date.now() };
+                const updatedProject = { ...updater(p), lastUpdated: Date.now() };
+                saveProjectDebounced(updatedProject);
+                return updatedProject;
             }
             return p;
         }));
@@ -145,15 +185,29 @@ function AppShell() {
         setActiveSection(SectionKey.ABOUT);
         setNewProjectName("");
         setIsModalOpen(false);
+
+        // Save new project to Firestore
+        if (user?.uid) {
+            saveProject(user.uid, newProject).catch(err => {
+                console.error('Failed to save new project:', err);
+            });
+        }
     };
 
-    const deleteProject = (id: string, e: React.MouseEvent) => {
+    const handleDeleteProject = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!confirm("Are you sure you want to delete this project?")) return;
         setProjects(projects.filter((p) => p.id !== id));
         if (activeProjectId === id) {
             setActiveProjectId(null);
             setActiveSection(SectionKey.PROJECT_LIST);
+        }
+
+        // Delete from Firestore
+        if (user?.uid) {
+            deleteProjectFromFirestore(user.uid, id).catch(err => {
+                console.error('Failed to delete project:', err);
+            });
         }
     };
 
@@ -163,6 +217,17 @@ function AppShell() {
         setActiveProjectId(id);
         setActiveSection(SectionKey.OVERVIEW);
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 font-['Outfit']">
+                <div className="p-8 text-center bg-white rounded-[40px] shadow-xl border border-gray-100 flex flex-col items-center gap-6">
+                    <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Loading Projects...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900 font-['Outfit'] h-screen overflow-hidden">
@@ -264,7 +329,7 @@ function AppShell() {
                                 projects={projects}
                                 onOpenModal={() => setIsModalOpen(true)}
                                 onSelectProject={handleProjectSelect}
-                                onDeleteProject={deleteProject}
+                                onDeleteProject={handleDeleteProject}
                             />
                         ) : activeProject ? (
                             <ProjectRoadmap

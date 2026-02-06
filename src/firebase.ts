@@ -1,9 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 // Defensive initialization
 let app: any = null;
 let auth: any = null;
+let db: any = null;
 
 try {
     const env = (import.meta as any).env;
@@ -16,6 +18,7 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
+        db = getFirestore(app);
     } else {
         const missing = [
             !env.VITE_FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",
@@ -29,4 +32,5 @@ try {
     console.error("Firebase failed to initialize:", error);
 }
 
-export { auth };
+export { auth, db };
+

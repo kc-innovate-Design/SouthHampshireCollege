@@ -39,5 +39,7 @@ export default function RequireAuth({
 
     if (!user) return <Login />;
 
-    return children;
+    // Pass user to children
+    return React.cloneElement(children, { user });
 }
+
