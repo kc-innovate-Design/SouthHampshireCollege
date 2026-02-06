@@ -22,14 +22,18 @@ const STORAGE_KEY = 'strategysuite_projects_v1';
  * Load all projects for a user from Firestore
  */
 export async function loadProjects(userId: string): Promise<ProjectState[]> {
+    console.log('[DEBUG] loadProjects called, db:', !!db);
     if (!db) {
-        console.warn('Firestore not initialized');
+        console.warn('[DEBUG] Firestore not initialized');
         return [];
     }
 
     try {
+        console.log('[DEBUG] Getting collection reference for user:', userId);
         const projectsRef = collection(db, 'users', userId, 'projects');
+        console.log('[DEBUG] Calling getDocs...');
         const snapshot = await getDocs(projectsRef);
+        console.log('[DEBUG] getDocs returned, docs count:', snapshot.size);
 
         const projects: ProjectState[] = [];
         snapshot.forEach((doc) => {
@@ -39,7 +43,7 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
         // Sort by lastUpdated descending (newest first)
         return projects.sort((a, b) => b.lastUpdated - a.lastUpdated);
     } catch (error) {
-        console.error('Failed to load projects from Firestore:', error);
+        console.error('[DEBUG] Failed to load projects from Firestore:', error);
         return [];
     }
 }

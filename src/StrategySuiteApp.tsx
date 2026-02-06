@@ -31,28 +31,37 @@ function AppShell({ user }: { user?: User }) {
     const [isLoading, setIsLoading] = useState(true);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+
     // Load projects from Firestore on mount
     useEffect(() => {
+        console.log('[DEBUG] useEffect triggered, user:', user?.uid);
         if (!user?.uid) {
+            console.log('[DEBUG] No user.uid, setting isLoading to false');
             setIsLoading(false);
             return;
         }
 
         async function initializeProjects() {
+            console.log('[DEBUG] initializeProjects called for user:', user!.uid);
             try {
                 // First, try to migrate any existing localStorage data
+                console.log('[DEBUG] Calling migrateFromLocalStorage...');
                 const migratedProjects = await migrateFromLocalStorage(user!.uid);
+                console.log('[DEBUG] migrateFromLocalStorage returned:', migratedProjects.length, 'projects');
 
                 if (migratedProjects.length > 0) {
                     setProjects(migratedProjects);
                 } else {
                     // Load projects from Firestore
+                    console.log('[DEBUG] Calling loadProjects...');
                     const firestoreProjects = await loadProjects(user!.uid);
+                    console.log('[DEBUG] loadProjects returned:', firestoreProjects.length, 'projects');
                     setProjects(firestoreProjects);
                 }
             } catch (error) {
-                console.error('Failed to initialize projects:', error);
+                console.error('[DEBUG] Failed to initialize projects:', error);
             } finally {
+                console.log('[DEBUG] Setting isLoading to false');
                 setIsLoading(false);
             }
         }
