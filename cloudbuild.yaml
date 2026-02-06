@@ -1,8 +1,16 @@
 steps:
-  # Build the container image
+  # Build the container image with Firebase config
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--build-arg'
+      - 'VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY'
+      - '--build-arg'
+      - 'VITE_FIREBASE_AUTH_DOMAIN=$_VITE_FIREBASE_AUTH_DOMAIN'
+      - '--build-arg'
+      - 'VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID'
+      - '--build-arg'
+      - 'VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID'
       - '-t'
       - 'gcr.io/$PROJECT_ID/south-hampshire-college'
       - '.'
@@ -31,6 +39,10 @@ steps:
 # Substitution variables - pass these when running gcloud builds submit
 substitutions:
   _GEMINI_API_KEY: ''
+  _VITE_FIREBASE_API_KEY: ''
+  _VITE_FIREBASE_AUTH_DOMAIN: ''
+  _VITE_FIREBASE_PROJECT_ID: ''
+  _VITE_FIREBASE_APP_ID: ''
 
 images:
   - 'gcr.io/$PROJECT_ID/south-hampshire-college'

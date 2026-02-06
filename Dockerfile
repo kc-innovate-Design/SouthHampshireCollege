@@ -9,7 +9,13 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Build the frontend (no ARG for secrets - they're injected at runtime)
+# Firebase config build arguments (client-side, safe to embed)
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+
+# Build the frontend with Firebase env vars
 RUN npm run build
 
 # Stage 2: Production runtime with Node.js server
