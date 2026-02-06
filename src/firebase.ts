@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-// Build trigger: 2026-02-06T23:24
+import { initializeFirestore } from "firebase/firestore";
+// Build trigger: 2026-02-06T23:39 - force long polling for Cloud Run
 
 // Defensive initialization
 let app: any = null;
@@ -28,9 +28,11 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Use standard Firestore (no experimental options)
-        db = getFirestore(app);
-        console.log('✅ Firebase initialized successfully');
+        // Force HTTP long polling for Cloud Run - WebSockets can hang
+        db = initializeFirestore(app, {
+            experimentalForceLongPolling: true,
+        });
+        console.log('✅ Firebase initialized with long polling');
     } else {
         const missing = [
             !FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",
