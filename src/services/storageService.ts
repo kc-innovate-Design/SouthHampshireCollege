@@ -22,7 +22,9 @@ const STORAGE_KEY = 'strategysuite_projects_v1';
  * Load all projects for a user from Firestore
  */
 export async function loadProjects(userId: string): Promise<ProjectState[]> {
-    console.log('[Firestore] Loading projects for user:', userId);
+    console.log('📦 [StorageService] loadProjects called for user:', userId);
+    console.log('📦 [StorageService] db object is:', db ? 'INITIALIZED' : 'NULL - Firebase not configured!');
+
     if (!db) {
         console.warn('[Firestore] Database not initialized');
         return [];
