@@ -14,9 +14,7 @@ const STORAGE_KEY = "strategysuite_projects_v1";
  */
 export default function StrategySuiteApp() {
     return (
-        <RequireAuth>
-            <AppShell />
-        </RequireAuth>
+        <AppShell />
     );
 }
 

@@ -8,6 +8,20 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// Defensive initialization
+let app;
+let auth: any;
 
-export const auth = getAuth(app);
+try {
+    if (!firebaseConfig.apiKey) {
+        console.warn("Firebase API Key missing. Authentication will not work.");
+        // We initialize with dummy to avoid crashes later if possible, 
+        // or just let it fail gracefully in components.
+    }
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+} catch (error) {
+    console.error("Firebase failed to initialize:", error);
+}
+
+export { auth };
