@@ -32,14 +32,13 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
 
     try {
         const projectsRef = collection(db, 'users', userId, 'projects');
+        console.log('[Firestore] Fetching from collection path: users/' + userId + '/projects');
 
-        // Increased timeout for Cloud Run cold starts (30s)
-        const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Firestore connection timed out after 30 seconds')), 30000);
-        });
+        const startTime = Date.now();
+        const snapshot = await getDocs(projectsRef);
+        const elapsed = Date.now() - startTime;
 
-        const snapshot = await Promise.race([getDocs(projectsRef), timeoutPromise]);
-        console.log('[Firestore] Loaded', snapshot.size, 'projects');
+        console.log('[Firestore] Loaded', snapshot.size, 'projects in', elapsed, 'ms');
 
         const projects: ProjectState[] = [];
         snapshot.forEach((doc) => {
@@ -48,8 +47,10 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
 
         // Sort by lastUpdated descending (newest first)
         return projects.sort((a, b) => b.lastUpdated - a.lastUpdated);
-    } catch (error) {
+    } catch (error: any) {
         console.error('[Firestore] Failed to load projects:', error);
+        console.error('[Firestore] Error code:', error?.code);
+        console.error('[Firestore] Error message:', error?.message);
         return [];
     }
 }
@@ -66,16 +67,17 @@ export async function saveProject(userId: string, project: ProjectState): Promis
 
     try {
         const projectRef = doc(db, 'users', userId, 'projects', project.id);
+        console.log('[Firestore] Writing to path: users/' + userId + '/projects/' + project.id);
 
-        // Add timeout to prevent hanging writes
-        const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Firestore write timed out after 30 seconds')), 30000);
-        });
+        const startTime = Date.now();
+        await setDoc(projectRef, project);
+        const elapsed = Date.now() - startTime;
 
-        await Promise.race([setDoc(projectRef, project), timeoutPromise]);
-        console.log('[Firestore] Project saved successfully:', project.id);
-    } catch (error) {
+        console.log('[Firestore] Project saved successfully:', project.id, 'in', elapsed, 'ms');
+    } catch (error: any) {
         console.error('[Firestore] Failed to save project:', error);
+        console.error('[Firestore] Error code:', error?.code);
+        console.error('[Firestore] Error message:', error?.message);
         throw error;
     }
 }
