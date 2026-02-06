@@ -11,9 +11,9 @@ import { loadProjects, saveProject, deleteProject as deleteProjectFromFirestore,
  * StrategySuiteApp
  * Enforces Auth and renders the AppShell.
  */
-export default function StrategySuiteApp() {
+export default function StrategySuiteApp({ user }: { user?: User }) {
     return (
-        <AppShell />
+        <AppShell user={user} />
     );
 }
 
