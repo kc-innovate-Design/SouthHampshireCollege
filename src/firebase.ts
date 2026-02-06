@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore } from "firebase/firestore";
-// Build trigger: 2026-02-06T23:39 - force long polling for Cloud Run
+import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
+// Build trigger: 2026-02-06T23:54 - disable IndexedDB cache
 
 // Defensive initialization
 let app: any = null;
@@ -28,11 +28,12 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Force HTTP long polling for Cloud Run - WebSockets can hang
+        // Force HTTP long polling + disable IndexedDB cache
         db = initializeFirestore(app, {
             experimentalForceLongPolling: true,
+            localCache: memoryLocalCache(),
         });
-        console.log('✅ Firebase initialized with long polling');
+        console.log('✅ Firebase initialized with long polling + memory cache');
     } else {
         const missing = [
             !FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",
