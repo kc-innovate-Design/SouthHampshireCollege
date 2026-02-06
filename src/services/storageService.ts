@@ -31,8 +31,14 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
     try {
         console.log('[DEBUG] Getting collection reference for user:', userId);
         const projectsRef = collection(db, 'users', userId, 'projects');
-        console.log('[DEBUG] Calling getDocs...');
-        const snapshot = await getDocs(projectsRef);
+        console.log('[DEBUG] Calling getDocs with 10s timeout...');
+
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Firestore getDocs timed out after 10 seconds')), 10000);
+        });
+
+        const snapshot = await Promise.race([getDocs(projectsRef), timeoutPromise]);
         console.log('[DEBUG] getDocs returned, docs count:', snapshot.size);
 
         const projects: ProjectState[] = [];
