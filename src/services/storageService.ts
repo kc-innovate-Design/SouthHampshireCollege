@@ -56,16 +56,18 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
  * Save a single project to Firestore
  */
 export async function saveProject(userId: string, project: ProjectState): Promise<void> {
+    console.log('[Firestore] Saving project:', project.id, 'for user:', userId);
     if (!db) {
-        console.warn('Firestore not initialized');
+        console.warn('[Firestore] Database not initialized, cannot save');
         return;
     }
 
     try {
         const projectRef = doc(db, 'users', userId, 'projects', project.id);
         await setDoc(projectRef, project);
+        console.log('[Firestore] Project saved successfully:', project.id);
     } catch (error) {
-        console.error('Failed to save project to Firestore:', error);
+        console.error('[Firestore] Failed to save project:', error);
         throw error;
     }
 }
