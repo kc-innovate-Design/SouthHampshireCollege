@@ -36,5 +36,12 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
 
+substitutions:
+  _VITE_FIREBASE_API_KEY: 'AIzaSyAIPJHIPEa6tmRVh-ylgw8pJ1RM7kzhzdI'
+  _VITE_FIREBASE_AUTH_DOMAIN: 'jobirdchatbot-61d33.firebaseapp.com'
+  _VITE_FIREBASE_PROJECT_ID: 'jobirdchatbot-61d33'
+  _VITE_FIREBASE_APP_ID: '1:971737729824:web:890ecb27047aa26b9d6545'
+  _VITE_GEMINI_API_KEY: 'AIzaSyCVkoYxAb_8Da2PmKXtCjz1LlYj-xoJjB4'
+
 images:
   - 'gcr.io/$PROJECT_ID/south-hampshire-college'
