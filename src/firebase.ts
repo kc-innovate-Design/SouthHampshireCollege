@@ -18,9 +18,9 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Use long polling instead of WebSockets for Cloud Run compatibility
+        // Use auto-detect long polling for Cloud Run compatibility
         db = initializeFirestore(app, {
-            experimentalForceLongPolling: true,
+            experimentalAutoDetectLongPolling: true,
         });
     } else {
         const missing = [
