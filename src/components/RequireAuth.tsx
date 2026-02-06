@@ -12,6 +12,10 @@ export default function RequireAuth({
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth) {
+            setLoading(false);
+            return;
+        }
         return onAuthStateChanged(auth, (u) => {
             if (u && !u.emailVerified) {
                 // We keep them logged in but RequireAuth returns <Login />
