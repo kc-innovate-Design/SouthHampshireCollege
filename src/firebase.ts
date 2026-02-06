@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+// Build trigger: 2026-02-06T23:24
 
 // Defensive initialization
 let app: any = null;
