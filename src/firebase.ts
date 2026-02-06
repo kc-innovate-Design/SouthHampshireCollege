@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Defensive initialization
 let app: any = null;
@@ -27,11 +27,8 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Use auto-detect long polling for better Cloud Run compatibility
-        // experimentalForceLongPolling can cause timeouts in some environments
-        db = initializeFirestore(app, {
-            experimentalAutoDetectLongPolling: true,
-        });
+        // Use standard Firestore (no experimental options)
+        db = getFirestore(app);
         console.log('✅ Firebase initialized successfully');
     } else {
         const missing = [
