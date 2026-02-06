@@ -22,24 +22,22 @@ const STORAGE_KEY = 'strategysuite_projects_v1';
  * Load all projects for a user from Firestore
  */
 export async function loadProjects(userId: string): Promise<ProjectState[]> {
-    console.log('[DEBUG] loadProjects called, db:', !!db);
+    console.log('[Firestore] Loading projects for user:', userId);
     if (!db) {
-        console.warn('[DEBUG] Firestore not initialized');
+        console.warn('[Firestore] Database not initialized');
         return [];
     }
 
     try {
-        console.log('[DEBUG] Getting collection reference for user:', userId);
         const projectsRef = collection(db, 'users', userId, 'projects');
-        console.log('[DEBUG] Calling getDocs with 10s timeout...');
 
-        // Add timeout to prevent hanging
+        // Increased timeout for Cloud Run cold starts (30s)
         const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Firestore getDocs timed out after 10 seconds')), 10000);
+            setTimeout(() => reject(new Error('Firestore connection timed out after 30 seconds')), 30000);
         });
 
         const snapshot = await Promise.race([getDocs(projectsRef), timeoutPromise]);
-        console.log('[DEBUG] getDocs returned, docs count:', snapshot.size);
+        console.log('[Firestore] Loaded', snapshot.size, 'projects');
 
         const projects: ProjectState[] = [];
         snapshot.forEach((doc) => {
@@ -49,7 +47,7 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
         // Sort by lastUpdated descending (newest first)
         return projects.sort((a, b) => b.lastUpdated - a.lastUpdated);
     } catch (error) {
-        console.error('[DEBUG] Failed to load projects from Firestore:', error);
+        console.error('[Firestore] Failed to load projects:', error);
         return [];
     }
 }
