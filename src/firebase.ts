@@ -17,7 +17,13 @@ try {
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
     } else {
-        console.warn("Firebase configuration missing in environment.");
+        const missing = [
+            !env.VITE_FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",
+            !env.VITE_FIREBASE_AUTH_DOMAIN && "VITE_FIREBASE_AUTH_DOMAIN",
+            !env.VITE_FIREBASE_PROJECT_ID && "VITE_FIREBASE_PROJECT_ID",
+            !env.VITE_FIREBASE_APP_ID && "VITE_FIREBASE_APP_ID"
+        ].filter(Boolean);
+        console.warn("Firebase configuration missing: ", missing.join(", "));
     }
 } catch (error) {
     console.error("Firebase failed to initialize:", error);
