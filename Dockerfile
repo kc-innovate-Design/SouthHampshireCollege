@@ -8,6 +8,21 @@ RUN npm install
 
 # Copy the rest of the application and build it
 COPY . .
+
+# Define build arguments for client-side environment variables
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+ARG VITE_GEMINI_API_KEY
+
+# Set environment variables for the build process
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+ENV VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY
+
 RUN npm run build
 
 # Stage 2: Serve the application using Nginx
@@ -21,15 +36,15 @@ RUN echo 'server { \
     listen 8080; \
     server_name localhost; \
     location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
+    root /usr/share/nginx/html; \
+    index index.html index.htm; \
+    try_files $uri $uri/ /index.html; \
     } \
     error_page 500 502 503 504 /50x.html; \
     location = /50x.html { \
-        root /usr/share/nginx/html; \
+    root /usr/share/nginx/html; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+    }' > /etc/nginx/conf.d/default.conf
 
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
