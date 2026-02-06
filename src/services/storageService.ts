@@ -64,7 +64,13 @@ export async function saveProject(userId: string, project: ProjectState): Promis
 
     try {
         const projectRef = doc(db, 'users', userId, 'projects', project.id);
-        await setDoc(projectRef, project);
+
+        // Add timeout to prevent hanging writes
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Firestore write timed out after 30 seconds')), 30000);
+        });
+
+        await Promise.race([setDoc(projectRef, project), timeoutPromise]);
         console.log('[Firestore] Project saved successfully:', project.id);
     } catch (error) {
         console.error('[Firestore] Failed to save project:', error);

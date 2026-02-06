@@ -18,9 +18,9 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Use auto-detect long polling for Cloud Run compatibility
+        // Use forced long polling for Cloud Run compatibility (confirmed working for reads)
         db = initializeFirestore(app, {
-            experimentalAutoDetectLongPolling: true,
+            experimentalForceLongPolling: true,
         });
     } else {
         const missing = [
