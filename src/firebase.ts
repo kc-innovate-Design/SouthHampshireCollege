@@ -5,19 +5,19 @@ import { getAuth } from "firebase/auth";
 let app: any = null;
 let auth: any = null;
 
-const firebaseConfig = {
-    apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY,
-    authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID,
-    appId: (import.meta as any).env.VITE_FIREBASE_APP_ID,
-};
-
 try {
-    if (firebaseConfig.apiKey) {
+    const env = (import.meta as any).env;
+    if (env && env.VITE_FIREBASE_API_KEY) {
+        const firebaseConfig = {
+            apiKey: env.VITE_FIREBASE_API_KEY,
+            authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+            projectId: env.VITE_FIREBASE_PROJECT_ID,
+            appId: env.VITE_FIREBASE_APP_ID,
+        };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
     } else {
-        console.warn("Firebase API Key missing. Authentication will not work.");
+        console.warn("Firebase configuration missing in environment.");
     }
 } catch (error) {
     console.error("Firebase failed to initialize:", error);
