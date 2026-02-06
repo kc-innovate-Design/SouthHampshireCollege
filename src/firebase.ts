@@ -27,9 +27,10 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Use forced long polling for Cloud Run compatibility
+        // Use auto-detect long polling for better Cloud Run compatibility
+        // experimentalForceLongPolling can cause timeouts in some environments
         db = initializeFirestore(app, {
-            experimentalForceLongPolling: true,
+            experimentalAutoDetectLongPolling: true,
         });
         console.log('✅ Firebase initialized successfully');
     } else {
