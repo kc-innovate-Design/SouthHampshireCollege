@@ -30,6 +30,11 @@ export default function Login() {
     e.preventDefault();
     setMessage(null);
 
+    if (!auth) {
+      setMessage({ text: "Authentication is not configured on this server. Please set VITE_FIREBASE_* environment variables.", type: 'error' });
+      return;
+    }
+
     if (!isAllowedEmailDomain(email)) {
       setMessage({ text: "This email domain is not authorised.", type: 'error' });
       return;
@@ -61,6 +66,10 @@ export default function Login() {
 
   const handleForgotPassword = async () => {
     setMessage(null);
+    if (!auth) {
+      setMessage({ text: "Authentication not configured.", type: 'error' });
+      return;
+    }
     if (!email) {
       setMessage({ text: "Please enter your email address first.", type: 'error' });
       return;
