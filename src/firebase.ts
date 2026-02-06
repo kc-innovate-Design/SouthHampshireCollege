@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 
 // Defensive initialization
 let app: any = null;
@@ -18,7 +18,10 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        db = getFirestore(app);
+        // Use long polling instead of WebSockets for Cloud Run compatibility
+        db = initializeFirestore(app, {
+            experimentalForceLongPolling: true,
+        });
     } else {
         const missing = [
             !env.VITE_FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",
