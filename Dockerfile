@@ -1,53 +1,35 @@
 # Stage 1: Build the Vite application
-FROM node:20-slim AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files and install all dependencies (including dev)
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application and build it
+# Copy the rest of the application
 COPY . .
 
-# Define build arguments for client-side environment variables
-ARG VITE_FIREBASE_API_KEY
-ARG VITE_FIREBASE_AUTH_DOMAIN
-ARG VITE_FIREBASE_PROJECT_ID
-ARG VITE_FIREBASE_APP_ID
-ARG VITE_GEMINI_API_KEY
-
-# Set environment variables for the build process
-ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
-ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
-ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
-ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
-ENV VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY
-
+# Build the frontend (no ARG for secrets - they're injected at runtime)
 RUN npm run build
 
-# Stage 2: Serve the application using Nginx
-FROM nginx:alpine
+# Stage 2: Production runtime with Node.js server
+FROM node:22-alpine
+WORKDIR /app
 
-# Copy the build output to the Nginx html directory
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy built frontend
+COPY --from=build /app/dist ./dist
 
-# Create a basic Nginx configuration to support SPA routing on port 8080
-RUN echo 'server { \
-    listen 8080; \
-    server_name localhost; \
-    location / { \
-    root /usr/share/nginx/html; \
-    index index.html index.htm; \
-    try_files $uri $uri/ /index.html; \
-    } \
-    error_page 500 502 503 504 /50x.html; \
-    location = /50x.html { \
-    root /usr/share/nginx/html; \
-    } \
-    }' > /etc/nginx/conf.d/default.conf
+# Copy server code
+COPY --from=build /app/server ./server
 
-# Expose port 8080 for Cloud Run
+# Copy package files for production dependencies
+COPY --from=build /app/package*.json ./
+
+# Install only production dependencies
+RUN npm install --omit=dev
+
+# Cloud Run uses port 8080 by default
 EXPOSE 8080
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the Express server (which serves the static frontend)
+CMD ["node", "server/index.js"]

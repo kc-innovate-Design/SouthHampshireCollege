@@ -1,0 +1,7 @@
+# Ignore these files when uploading to Cloud Build
+node_modules/
+dist/
+.git/
+.firebase/
+.env.local
+.env.*.local

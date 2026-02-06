@@ -4,7 +4,7 @@ import { auth } from "./firebase";
 import RequireAuth from "./components/RequireAuth";
 import { SECTIONS, FRAMEWORK_CONFIGS } from "../constants";
 import { ProjectState, SectionKey, Idea, FrameworkItem } from "../types";
-import { GoogleGenAI, Type } from "@google/genai";
+// Note: Gemini AI is now accessed via secure backend API at /api/v1/generate-ideas
 
 const STORAGE_KEY = "strategysuite_projects_v1";
 
@@ -73,39 +73,28 @@ function AppShell() {
 
         setIsGenerating(true);
         try {
-            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || "";
-            // Matching the original index.tsx pattern for @google/genai
-            const ai = new GoogleGenAI({ apiKey });
-
-            const businessContext = `Business Context: ${activeProject.businessDetails}. Additional files: ${activeProject.businessFiles.map(f => f.content).join(' ')}`;
             const frameworkItem = activeProject.frameworks[frameworkKey].find(i => i.id === itemId);
+            const businessContext = `Business Context: ${activeProject.businessDetails}. Additional files: ${activeProject.businessFiles.map(f => f.content).join(' ')}`;
 
-            const prompt = `
-                You are a world-class strategic consultant.
-                Propose 3 distinct ideas for the "${frameworkItem?.title}" category of a ${frameworkKey.toUpperCase()} framework.
-                
-                CONTEXT:
-                ${businessContext}
-                ${promptOverride ? `SPECIFIC FOCUS: ${promptOverride}` : ''}
-                
-                CONSTRAINTS:
-                - UK English spelling ONLY (e.g., 'organise', 'specialised', 'analysing').
-                - MAXIMUM 7 words per idea.
-                - Exactly 3 ideas.
-                - Professional, specific, and actionable.
-                - RETURN AS A JSON ARRAY OF STRINGS: ["idea1", "idea2", "idea3"]
-            `;
-
-            // Using the models.generateContent pattern from the original code
-            const result = await (ai as any).models.generateContent({
-                model: "gemini-1.5-flash", // Updated from preview for stability
-                prompt: prompt,
-                generationConfig: { responseMimeType: "application/json" }
+            // Call secure backend API instead of exposing API key client-side
+            const response = await fetch('/api/v1/generate-ideas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    frameworkKey,
+                    itemTitle: frameworkItem?.title,
+                    businessContext,
+                    promptOverride
+                })
             });
 
-            const response = await result.response;
-            const raw = response.text() || "[]";
-            const suggestions: string[] = JSON.parse(raw);
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'AI generation failed');
+            }
+
+            const data = await response.json();
+            const suggestions: string[] = data.ideas;
 
             updateActiveProject(prev => {
                 const newFrameworks = { ...prev.frameworks };
@@ -124,7 +113,7 @@ function AppShell() {
             });
         } catch (error) {
             console.error("AI generation failed", error);
-            alert("Strategic analysis failed. Please check your API key in components/firebase.ts or .env.local.");
+            alert("Strategic analysis failed. Please ensure the server is running.");
         } finally {
             setIsGenerating(false);
         }
