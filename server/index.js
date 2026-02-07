@@ -54,6 +54,14 @@ try {
     const dbId = db.databaseId || (db._databaseId ? db._databaseId.database : 'unknown');
     console.log(`Firestore Database ID: ${dbId}`);
 
+    // THE CANARY TEST: Write a document we can see in the console
+    await db.collection('canary_test').doc('test_doc').set({
+        message: 'If you see this, the server is hitting this database!',
+        timestamp: new Date().toISOString(),
+        serverId: process.env.K_REVISION || 'local'
+    });
+    console.log('🐥 CANARY DOCUMENT WRITTEN to /canary_test/test_doc');
+
     // List root collections to see where we are
     const collections = await db.listCollections();
     console.log(`Root Collections Found (${collections.length}): ${collections.map(c => c.id).join(', ')}`);
