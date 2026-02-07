@@ -16,7 +16,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json());
+// Increase limit for large project objects (default is 100kb)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Log incoming requests for debugging
+app.use((req, res, next) => {
+    if (req.method === 'POST') {
+        console.log(`📡 [Incoming] ${req.method} ${req.url} - Body Size: ${JSON.stringify(req.body).length} chars`);
+    }
+    next();
+});
 
 // Initialize Gemini with server-side API key (never exposed to client)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
@@ -183,7 +193,8 @@ app.post('/api/v1/projects/:userId', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('❌ [Server] Error saving project:', error);
+        console.error('❌ [Server] Firestore Save Error Stack:', error.stack);
+        console.error('❌ [Server] Firestore Save Error Message:', error.message);
         res.status(500).json({ error: 'Failed to save project', message: error.message });
     }
 });
