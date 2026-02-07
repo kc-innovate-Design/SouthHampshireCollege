@@ -49,11 +49,11 @@ console.log('--- 🛡️ FIREBASE DEEP DIAGNOSTICS ---');
 console.log(`Admin Init Project ID: ${admin.app().options.projectId}`);
 console.log(`Firestore Internal Project ID: ${db._settings.projectId}`);
 try {
-    // Attempt to probe the database ID directly from the instance
     const dbName = db._databaseId ? db._databaseId.database : '(default)';
-    console.log(`Firestore Database ID: ${dbName}`);
+    console.log(`Firestore Database ID: ${dbId || dbName}`);
 } catch (e) { }
 console.log(`Ambient Project ID: ${process.env.GOOGLE_CLOUD_PROJECT || 'Not set'}`);
+console.log(`Server Region: ${process.env.K_SERVICE ? 'Cloud Run' : 'Local'}`);
 console.log('------------------------------------');
 
 // ============================================
