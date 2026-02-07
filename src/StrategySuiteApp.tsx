@@ -458,7 +458,7 @@ function WorkspaceView({ projects, onOpenModal, onSelectProject, onDeleteProject
                                     </svg>
                                 </button>
                             </div>
-                            <h3 className="text-2xl font-black text-gray-900 leading-tight mb-2 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{p.name}</h3>
+                            <h3 className="text-2xl font-black text-gray-900 leading-tight mb-2 uppercase tracking-tight group-hover:text-indigo-600 transition-colors break-all line-clamp-2">{p.name}</h3>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                                 Created {new Date(p.lastUpdated).toLocaleDateString()}
                             </p>
@@ -529,7 +529,7 @@ function ProjectRoadmap({
                     <span className="px-4 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm animate-pulse">Live Strategy Session</span>
                     <span className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Project ID: {project.id}</span>
                 </div>
-                <h2 className="text-5xl font-black text-gray-900 tracking-tight uppercase leading-none shadow-sm inline-block">{project.name}</h2>
+                <h2 className="text-5xl font-black text-gray-900 tracking-tight uppercase leading-none shadow-sm inline-block break-words max-w-full">{project.name}</h2>
                 <div className="mt-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
                         <i className={`fas ${currentSection?.icon}`} />

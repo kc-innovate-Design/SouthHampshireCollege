@@ -166,18 +166,20 @@ app.post('/api/v1/projects/:userId', async (req, res) => {
         return res.status(400).json({ error: 'Missing project data or ID' });
     }
 
-    console.log(`📦 [Server] Saving project ${project.id} for user: ${userId} to path: users/${userId}/projects/${project.id}`);
+    console.log(`📦 [Server] Saving project ${project.id} ("${project.name}") for user: ${userId}`);
+    console.log(`🔍 [Server] Target path: users/${userId}/projects/${project.id}`);
 
     try {
         const projectRef = db.collection('users').doc(userId).collection('projects').doc(project.id);
         const result = await projectRef.set(project, { merge: true });
 
-        console.log(`✅ [Server] Project ${project.id} saved. Write time: ${result.writeTime ? 'success' : 'unknown'}`);
+        console.log(`✅ [Server] Project ${project.id} saved successfully. WriteTime: ${result.writeTime ? 'available' : 'unknown'}`);
         res.json({
             success: true,
             metadata: {
                 projectId: db._settings.projectId || PROJECT_ID,
-                path: `users/${userId}/projects/${project.id}`
+                path: projectRef.path,
+                writeTime: result.writeTime
             }
         });
     } catch (error) {
