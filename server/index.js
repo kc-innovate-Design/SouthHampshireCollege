@@ -29,19 +29,22 @@ if (GEMINI_API_KEY) {
 }
 
 // Initialize Firebase Admin for server-side Firestore access
+const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'southhampshirecollege';
+
 try {
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.applicationDefault(),
-            projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'southhampshirecollege'
+            projectId: PROJECT_ID
         });
-        console.log('✅ Firebase Admin initialized');
+        console.log(`✅ Firebase Admin initialized for project: ${PROJECT_ID}`);
     }
 } catch (error) {
     console.error('❌ Firebase Admin init error:', error);
 }
 
 const db = admin.firestore();
+console.log(`📦 Firestore DB discovered. Project: ${db._settings.projectId || PROJECT_ID}`);
 
 // ============================================
 // API Routes
@@ -129,7 +132,10 @@ app.get('/api/v1/projects/:userId', async (req, res) => {
         // Sort by lastUpdated descending (newest first)
         projects.sort((a, b) => (b.lastUpdated || 0) - (a.lastUpdated || 0));
 
-        console.log(`✅ [Server] Loaded ${projects.length} projects for ${userId}`);
+        console.log(`✅ [Server] Loaded ${projects.length} projects for ${userId} (Project: ${db._settings.projectId})`);
+        if (projects.length > 0) {
+            console.log(`👉 [Server] Example project ID: ${projects[0].id}`);
+        }
         res.json(projects);
     } catch (error) {
         console.error('❌ [Server] Error loading projects:', error);
@@ -150,13 +156,13 @@ app.post('/api/v1/projects/:userId', async (req, res) => {
         return res.status(400).json({ error: 'Missing project data or ID' });
     }
 
-    console.log(`📦 [Server] Saving project ${project.id} for user: ${userId}`);
+    console.log(`📦 [Server] Saving project ${project.id} for user: ${userId} to path: users/${userId}/projects/${project.id}`);
 
     try {
         const projectRef = db.collection('users').doc(userId).collection('projects').doc(project.id);
-        await projectRef.set(project, { merge: true });
+        const result = await projectRef.set(project, { merge: true });
 
-        console.log(`✅ [Server] Project ${project.id} saved successfully`);
+        console.log(`✅ [Server] Project ${project.id} saved. Write time: ${result.writeTime ? 'success' : 'unknown'}`);
         res.json({ success: true });
     } catch (error) {
         console.error('❌ [Server] Error saving project:', error);

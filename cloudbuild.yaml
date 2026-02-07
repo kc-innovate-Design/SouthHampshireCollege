@@ -34,7 +34,7 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GEMINI_API_KEY=$_GEMINI_API_KEY'
+      - 'GEMINI_API_KEY=$_GEMINI_API_KEY,VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN=$_VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID,VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID'
 
 # Substitution variables - pass these when running gcloud builds submit
 substitutions:
