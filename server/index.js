@@ -132,6 +132,7 @@ app.get('/api/v1/projects/:userId', async (req, res) => {
 
     try {
         const projectsRef = db.collection('users').doc(userId).collection('projects');
+        console.log(`🔍 [Server] Querying: ${projectsRef.path} in Project: ${db._settings.projectId}`);
         const snapshot = await projectsRef.get();
 
         const projects = [];
