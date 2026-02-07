@@ -20,10 +20,11 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Log incoming requests for debugging
+// Log all incoming requests for debugging
 app.use((req, res, next) => {
+    console.log(`📡 [Request] ${req.method} ${req.url}`);
     if (req.method === 'POST') {
-        console.log(`📡 [Incoming] ${req.method} ${req.url} - Body Size: ${JSON.stringify(req.body).length} chars`);
+        console.log(`   └─ Body Size: ${JSON.stringify(req.body).length} chars`);
     }
     next();
 });
