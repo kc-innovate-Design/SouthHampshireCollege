@@ -23,8 +23,11 @@ export async function loadProjects(userId: string): Promise<ProjectState[]> {
             throw new Error(errorData.message || `Failed to load projects: ${response.statusText}`);
         }
 
-        const projects: ProjectState[] = await response.json();
-        console.log(`[StorageService] Loaded ${projects.length} projects via proxy`);
+        const data = await response.json();
+        const projects: ProjectState[] = data.projects || [];
+        const metadata = data.metadata;
+
+        console.log(`[StorageService] Loaded ${projects.length} projects from project: ${metadata?.projectId || 'unknown'}`);
 
         return projects;
     } catch (error: any) {
@@ -53,7 +56,8 @@ export async function saveProject(userId: string, project: ProjectState): Promis
             throw new Error(errorData.message || `Failed to save project: ${response.statusText}`);
         }
 
-        console.log('[StorageService] Project saved successfully via proxy:', project.id);
+        const result = await response.json();
+        console.log(`[StorageService] Project saved successfully to: ${result.metadata?.projectId} (Path: ${result.metadata?.path})`);
     } catch (error: any) {
         console.error('[StorageService] Proxy save failed:', error);
         throw error;

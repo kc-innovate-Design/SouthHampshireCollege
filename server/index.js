@@ -137,7 +137,13 @@ app.get('/api/v1/projects/:userId', async (req, res) => {
         if (projects.length > 0) {
             console.log(`👉 [Server] Example project ID: ${projects[0].id}`);
         }
-        res.json(projects);
+        res.json({
+            projects,
+            metadata: {
+                projectId: db._settings.projectId || PROJECT_ID,
+                database: '(default)'
+            }
+        });
     } catch (error) {
         console.error('❌ [Server] Error loading projects:', error);
         res.status(500).json({ error: 'Failed to load projects', message: error.message });
@@ -164,7 +170,13 @@ app.post('/api/v1/projects/:userId', async (req, res) => {
         const result = await projectRef.set(project, { merge: true });
 
         console.log(`✅ [Server] Project ${project.id} saved. Write time: ${result.writeTime ? 'success' : 'unknown'}`);
-        res.json({ success: true });
+        res.json({
+            success: true,
+            metadata: {
+                projectId: db._settings.projectId || PROJECT_ID,
+                path: `users/${userId}/projects/${project.id}`
+            }
+        });
     } catch (error) {
         console.error('❌ [Server] Error saving project:', error);
         res.status(500).json({ error: 'Failed to save project', message: error.message });
