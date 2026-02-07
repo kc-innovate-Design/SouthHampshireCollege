@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { signOut, User } from "firebase/auth";
 import { auth } from "./firebase";
+import { useUser } from "./contexts/UserContext";
 import RequireAuth from "./components/RequireAuth";
 import { SECTIONS, FRAMEWORK_CONFIGS } from "../constants";
 import { ProjectState, SectionKey, Idea, FrameworkItem } from "../types";
@@ -11,9 +12,10 @@ import { loadProjects, saveProject, deleteProject as deleteProjectFromFirestore,
  * StrategySuiteApp
  * Enforces Auth and renders the AppShell.
  */
-export default function StrategySuiteApp({ user }: { user?: User }) {
+export default function StrategySuiteApp() {
+    const { user } = useUser();
     return (
-        <AppShell user={user} />
+        <AppShell user={user || undefined} />
     );
 }
 
