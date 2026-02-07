@@ -58,7 +58,20 @@ export default function Login() {
         }
       }
     } catch (err: any) {
-      setMessage({ text: err.message, type: 'error' });
+      let friendlyMessage = err.message;
+      if (err.code === 'auth/invalid-credential') {
+        friendlyMessage = "Incorrect email or password. If you don't have an account yet, please click 'Sign Up' below.";
+      } else if (err.code === 'auth/user-not-found') {
+        friendlyMessage = "No account found with this email address. Please sign up first.";
+      } else if (err.code === 'auth/wrong-password') {
+        friendlyMessage = "Incorrect password. Please try again or reset your password.";
+      } else if (err.code === 'auth/network-request-failed') {
+        friendlyMessage = "Network error. Please check your internet connection and try again.";
+      } else if (err.code === 'auth/too-many-requests') {
+        friendlyMessage = "Too many failed login attempts. Please try again later or reset your password.";
+      }
+
+      setMessage({ text: friendlyMessage, type: 'error' });
     } finally {
       setLoading(false);
     }
