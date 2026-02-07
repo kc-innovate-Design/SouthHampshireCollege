@@ -177,13 +177,19 @@ app.post('/api/v1/projects/:userId', async (req, res) => {
     }
 
     console.log(`📦 [Server] Saving project ${project.id} ("${project.name}") for user: ${userId}`);
-    console.log(`🔍 [Server] Target path: users/${userId}/projects/${project.id}`);
 
     try {
-        const projectRef = db.collection('users').doc(userId).collection('projects').doc(project.id);
+        // Ensure the parent user document exists for better visibility in Firestore Console
+        const userRef = db.collection('users').doc(userId);
+        await userRef.set({
+            lastUpdated: new Date().toISOString(),
+            uid: userId
+        }, { merge: true });
+
+        const projectRef = userRef.collection('projects').doc(project.id);
         const result = await projectRef.set(project, { merge: true });
 
-        console.log(`✅ [Server] Project ${project.id} saved successfully. WriteTime: ${result.writeTime ? 'available' : 'unknown'}`);
+        console.log(`✅ [Server] Project ${project.id} saved successfully to path: ${projectRef.path}`);
         res.json({
             success: true,
             metadata: {
