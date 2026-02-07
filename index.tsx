@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./src/App";
+import { UserProvider } from "./src/contexts/UserContext";
 
 import RequireAuth from "./src/components/RequireAuth"; // Pre-load to avoid missing chunks
 
@@ -13,7 +14,9 @@ if (!container) {
 try {
   createRoot(container).render(
     <React.StrictMode>
-      <App />
+      <UserProvider>
+        <App />
+      </UserProvider>
     </React.StrictMode>
   );
 } catch (error: any) {

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { onAuthStateChanged, User, signOut } from "firebase/auth";
-import { auth } from "../firebase";
+import React from "react";
+import { useUser } from "../contexts/UserContext";
 import Login from "../pages/Login";
 
 export default function RequireAuth({
@@ -8,25 +7,7 @@ export default function RequireAuth({
 }: {
     children: React.ReactElement;
 }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        if (!auth) {
-            setLoading(false);
-            return;
-        }
-        return onAuthStateChanged(auth, (u) => {
-            if (u && !u.emailVerified) {
-                // We keep them logged in but RequireAuth returns <Login />
-                // Login.tsx will show the "Please verify" message
-                setUser(null);
-            } else {
-                setUser(u);
-            }
-            setLoading(false);
-        });
-    }, []);
+    const { user, loading } = useUser();
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 font-['Outfit']">
@@ -39,7 +20,5 @@ export default function RequireAuth({
 
     if (!user) return <Login />;
 
-    // Pass user to children
-    return React.cloneElement(children, { user });
+    return children;
 }
-
