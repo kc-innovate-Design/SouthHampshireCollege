@@ -139,6 +139,7 @@ app.get('/api/v1/projects/:userId', async (req, res) => {
 
         console.log(`✅ [Server] Loaded ${projects.length} projects for ${userId} (Project: ${db._settings.projectId})`);
         if (projects.length > 0) {
+            console.log(`👉 [Server] Example project titles: ${projects.slice(0, 3).map(p => p.title || 'Untitled').join(', ')}`);
             console.log(`👉 [Server] Example project ID: ${projects[0].id}`);
         }
         res.json({
