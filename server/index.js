@@ -45,7 +45,11 @@ try {
 }
 
 const db = admin.firestore();
-console.log(`📦 Firestore DB discovered. Project: ${db._settings.projectId || PROJECT_ID}`);
+console.log('--- 🛡️ FIREBASE DIAGNOSTICS ---');
+console.log(`Admin options Project ID: ${admin.app().options.projectId}`);
+console.log(`Firestore settings Project ID: ${db._settings.projectId}`);
+console.log(`Process Project ID: ${process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT}`);
+console.log('-------------------------------');
 
 // ============================================
 // API Routes
