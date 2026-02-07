@@ -7,6 +7,7 @@
  */
 
 import express from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -16,6 +17,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// Enable Gzip compression
+app.use(compression());
+
 // Increase limit for large project objects (default is 100kb)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -242,9 +246,17 @@ app.get('/api/health', (req, res) => {
 // Static File Serving (Production)
 // ============================================
 
-// Serve static files from the dist directory
+// Serve static files from the dist directory with long-term caching for assets
 const distPath = path.join(__dirname, '..', 'dist');
-app.use(express.static(distPath));
+app.use(express.static(distPath, {
+    maxAge: '1y',
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+            // Don't cache HTML files so we always serve the latest bundle version
+            res.setHeader('Cache-Control', 'public, max-age=0');
+        }
+    }
+}));
 
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
