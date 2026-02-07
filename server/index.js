@@ -45,11 +45,16 @@ try {
 }
 
 const db = admin.firestore();
-console.log('--- 🛡️ FIREBASE DIAGNOSTICS ---');
-console.log(`Admin options Project ID: ${admin.app().options.projectId}`);
-console.log(`Firestore settings Project ID: ${db._settings.projectId}`);
-console.log(`Process Project ID: ${process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT}`);
-console.log('-------------------------------');
+console.log('--- 🛡️ FIREBASE DEEP DIAGNOSTICS ---');
+console.log(`Admin Init Project ID: ${admin.app().options.projectId}`);
+console.log(`Firestore Internal Project ID: ${db._settings.projectId}`);
+try {
+    // Attempt to probe the database ID directly from the instance
+    const dbName = db._databaseId ? db._databaseId.database : '(default)';
+    console.log(`Firestore Database ID: ${dbName}`);
+} catch (e) { }
+console.log(`Ambient Project ID: ${process.env.GOOGLE_CLOUD_PROJECT || 'Not set'}`);
+console.log('------------------------------------');
 
 // ============================================
 // API Routes
