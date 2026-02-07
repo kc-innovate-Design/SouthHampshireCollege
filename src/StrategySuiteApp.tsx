@@ -243,13 +243,18 @@ function AppShell({ user }: { user?: User }) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex flex-col">
                         <h1
                             onClick={() => { setActiveProjectId(null); setActiveSection(SectionKey.PROJECT_LIST); }}
                             className="font-extrabold text-xl text-gray-900 tracking-tight cursor-pointer"
                         >
                             StrategySuite
                         </h1>
+                        {user && (
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-0.5">
+                                Logged in as {user.displayName || user.email}
+                            </p>
+                        )}
                     </div>
                 </div>
 
