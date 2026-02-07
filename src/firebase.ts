@@ -1,12 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
-// Build trigger: 2026-02-06T23:54 - disable IndexedDB cache
 
 // Defensive initialization
 let app: any = null;
 let auth: any = null;
-let db: any = null;
+let db: any = null; // Kept as null for backward compatibility if needed, but unused
 
 // Vite requires DIRECT static access to import.meta.env.VITE_* for build-time replacement
 // DO NOT store import.meta.env in a variable - it breaks the substitution!
@@ -28,12 +26,8 @@ try {
         };
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        // Force HTTP long polling + disable IndexedDB cache
-        db = initializeFirestore(app, {
-            experimentalForceLongPolling: true,
-            localCache: memoryLocalCache(),
-        });
-        console.log('✅ Firebase initialized with long polling + memory cache');
+
+        console.log('✅ Firebase initialized (Auth only, Firestore via Proxy)');
     } else {
         const missing = [
             !FIREBASE_API_KEY && "VITE_FIREBASE_API_KEY",

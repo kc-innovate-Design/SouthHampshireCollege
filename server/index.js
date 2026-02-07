@@ -9,6 +9,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import admin from 'firebase-admin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,21 @@ if (GEMINI_API_KEY) {
 } else {
     console.warn('⚠️ GEMINI_API_KEY not set - AI features disabled');
 }
+
+// Initialize Firebase Admin for server-side Firestore access
+try {
+    if (!admin.apps.length) {
+        admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+            projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'southhampshirecollege'
+        });
+        console.log('✅ Firebase Admin initialized');
+    }
+} catch (error) {
+    console.error('❌ Firebase Admin init error:', error);
+}
+
+const db = admin.firestore();
 
 // ============================================
 // API Routes
@@ -89,6 +105,83 @@ app.post('/api/v1/generate-ideas', async (req, res) => {
             error: 'AI generation failed',
             message: error.message
         });
+    }
+});
+
+/**
+ * GET /api/v1/projects/:userId
+ * 
+ * Fetches all projects for a specific user.
+ */
+app.get('/api/v1/projects/:userId', async (req, res) => {
+    const { userId } = req.params;
+    console.log(`📦 [Server] Fetching projects for user: ${userId}`);
+
+    try {
+        const projectsRef = db.collection('users').doc(userId).collection('projects');
+        const snapshot = await projectsRef.get();
+
+        const projects = [];
+        snapshot.forEach(doc => {
+            projects.push(doc.data());
+        });
+
+        // Sort by lastUpdated descending (newest first)
+        projects.sort((a, b) => (b.lastUpdated || 0) - (a.lastUpdated || 0));
+
+        console.log(`✅ [Server] Loaded ${projects.length} projects for ${userId}`);
+        res.json(projects);
+    } catch (error) {
+        console.error('❌ [Server] Error loading projects:', error);
+        res.status(500).json({ error: 'Failed to load projects', message: error.message });
+    }
+});
+
+/**
+ * POST /api/v1/projects/:userId
+ * 
+ * Saves or updates a project for a specific user.
+ */
+app.post('/api/v1/projects/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const project = req.body;
+
+    if (!project || !project.id) {
+        return res.status(400).json({ error: 'Missing project data or ID' });
+    }
+
+    console.log(`📦 [Server] Saving project ${project.id} for user: ${userId}`);
+
+    try {
+        const projectRef = db.collection('users').doc(userId).collection('projects').doc(project.id);
+        await projectRef.set(project, { merge: true });
+
+        console.log(`✅ [Server] Project ${project.id} saved successfully`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ [Server] Error saving project:', error);
+        res.status(500).json({ error: 'Failed to save project', message: error.message });
+    }
+});
+
+/**
+ * DELETE /api/v1/projects/:userId/:projectId
+ * 
+ * Deletes a project for a specific user.
+ */
+app.delete('/api/v1/projects/:userId/:projectId', async (req, res) => {
+    const { userId, projectId } = req.params;
+    console.log(`📦 [Server] Deleting project ${projectId} for user: ${userId}`);
+
+    try {
+        const projectRef = db.collection('users').doc(userId).collection('projects').doc(projectId);
+        await projectRef.delete();
+
+        console.log(`✅ [Server] Project ${projectId} deleted successfully`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ [Server] Error deleting project:', error);
+        res.status(500).json({ error: 'Failed to delete project', message: error.message });
     }
 });
 
