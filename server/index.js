@@ -30,7 +30,7 @@ if (GEMINI_API_KEY) {
 }
 
 // Initialize Firebase Admin for server-side Firestore access
-const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'southhampshirecollege';
+const PROJECT_ID = (process.env.VITE_FIREBASE_PROJECT_ID || 'southhampshirecollege').trim();
 
 try {
     if (!admin.apps.length) {
