@@ -45,16 +45,23 @@ try {
 }
 
 const db = admin.firestore();
-console.log('--- 🛡️ FIREBASE DEEP DIAGNOSTICS ---');
-console.log(`Admin Init Project ID: ${admin.app().options.projectId}`);
+console.log('--- 🛡️ FIREBASE FINAL BOSS DIAGNOSTICS ---');
+const appOptions = admin.app().options;
+console.log(`Admin Init Project ID: ${appOptions.projectId}`);
 console.log(`Firestore Internal Project ID: ${db._settings.projectId}`);
 try {
-    const dbName = db._databaseId ? db._databaseId.database : '(default)';
-    console.log(`Firestore Database ID: ${dbName}`);
-} catch (e) { }
-console.log(`Ambient Project ID: ${process.env.GOOGLE_CLOUD_PROJECT || 'Not set'}`);
-console.log(`Server Region: ${process.env.K_SERVICE ? 'Cloud Run' : 'Local'}`);
-console.log('------------------------------------');
+    // Official way to get database ID in newer node SDKs
+    const dbId = db.databaseId || (db._databaseId ? db._databaseId.database : 'unknown');
+    console.log(`Firestore Database ID: ${dbId}`);
+
+    // List root collections to see where we are
+    const collections = await db.listCollections();
+    console.log(`Root Collections Found (${collections.length}): ${collections.map(c => c.id).join(', ')}`);
+} catch (e) {
+    console.log(`Diagnostic Error: ${e.message}`);
+}
+console.log(`Process ID: ${process.env.GOOGLE_CLOUD_PROJECT || process.env.PROJECT_ID || 'Not set'}`);
+console.log('------------------------------------------');
 
 // ============================================
 // API Routes
